@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件转换工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .file-list {
+            margin: 20px 0;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            font-size: 1.5em;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-item {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .result-success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .result-error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .supported-formats {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .format-tags {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .format-tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+
+
+        .qr-title {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .qr-subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .qr-code {
+            display: inline-block;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+            border-radius: 5px;
+        }
+
+        .qr-description {
+            color: #555;
+            font-size: 0.95em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .qr-benefits {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .benefit-item {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .upload-area {
+                padding: 40px 20px;
+            }
+
+            .qr-section {
+                margin-top: 30px;
+                padding: 20px;
+            }
+
+            .qr-code img {
+                width: 120px;
+                height: 120px;
+            }
+
+            .qr-benefits {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 文件知识提取工具</h1>
+            <p>支持 PDF文件提取知识保存为xlsx格式</p>
+        </div>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">点击选择文件或拖拽文件到此处</div>
+                <div class="upload-hint">支持 PDF、Word文件</div>
+                <input type="file" id="fileInput" name="files" multiple accept=".pdf,.xlsx,.xls,.docx,.doc" class="file-input">
+            </div>
+        </form>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div style="text-align: center;">
+            <button class="btn" id="convertBtn" onclick="convertFiles()" disabled>开始转换</button>
+            <button class="btn" id="clearBtn" onclick="clearFiles()">清空文件</button>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="results" id="results"></div>
+
+        <div class="supported-formats">
+            <h3>支持的格式</h3>
+            <div class="format-tags">
+                <span class="format-tag">PDF → xlsx</span>
+                <span class="format-tag">Word → xlsx</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedFiles = [];
+
+        // 文件上传区域事件
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const convertBtn = document.getElementById('convertBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const results = document.getElementById('results');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            addFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            addFiles(files);
+        }
+
+        function addFiles(files) {
+            files.forEach(file => {
+                if (isValidFile(file) && !selectedFiles.find(f => f.name === file.name)) {
+                    selectedFiles.push(file);
+                }
+            });
+            updateFileList();
+            updateConvertButton();
+        }
+
+        function isValidFile(file) {
+            const validTypes = ['.pdf', '.xlsx', '.xls', '.docx', '.doc'];
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+            return validTypes.includes(fileExt);
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <span class="file-icon">${getFileIcon(file.name)}</span>
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">&times;</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch(ext) {
+                case 'pdf': return '📄';
+                case 'xlsx':
+                case 'xls': return '📊';
+                case 'docx':
+                case 'doc': return '📝';
+                default: return '📁';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateConvertButton();
+        }
+
+        function clearFiles() {
+            selectedFiles = [];
+            updateFileList();
+            updateConvertButton();
+            results.style.display = 'none';
+        }
+
+        function updateConvertButton() {
+            convertBtn.disabled = selectedFiles.length === 0;
+        }
+
+        async function convertFiles() {
+            if (selectedFiles.length === 0) return;
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+
+            convertBtn.disabled = true;
+            convertBtn.textContent = '转换中...';
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+
+            // 模拟进度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    showResults(result);
+                }, 500);
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                progressBar.style.display = 'none';
+                alert('转换失败: ' + error.message);
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = '开始转换';
+            }
+        }
+
+        function showResults(result) {
+            results.innerHTML = '';
+            results.style.display = 'block';
+
+            if (result.success) {
+                result.results.forEach(item => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = `result-item ${item.success ? 'result-success' : 'result-error'}`;
+                    resultItem.innerHTML = `
+                        <div>
+                            <strong>${item.filename}</strong><br>
+                            <small>${item.message}</small>
+                        </div>
+                        <span>${item.success ? '✅' : '❌'}</span>
+                    `;
+                    results.appendChild(resultItem);
+                });
+
+                if (result.output_files && result.output_files.length > 0) {
+                    const downloadSection = document.createElement('div');
+                    downloadSection.className = 'download-section';
+                    downloadSection.innerHTML = `
+                        <h3>📥 下载转换后的文件</h3>
+                        <p>转换完成！点击下载所有文件或单独下载。</p>
+                        <button class="btn" onclick="downloadAll('${result.output_dir}')">下载全部文件 (ZIP)</button>
+                        <div style="margin-top: 15px;">
+                            ${result.output_files.map(file => 
+                                `<button class="btn" onclick="downloadSingle('${result.output_dir}', '${file}')" style="margin: 5px; font-size: 0.9em;">${file}</button>`
+                            ).join('')}
+                        </div>
+                    `;
+                    results.appendChild(downloadSection);
+                }
+            } else {
+                const errorItem = document.createElement('div');
+                errorItem.className = 'result-item result-error';
+                errorItem.innerHTML = `
+                    <div>
+                        <strong>转换失败</strong><br>
+                        <small>${result.message}</small>
+                    </div>
+                    <span>❌</span>
+                `;
+                results.appendChild(errorItem);
+            }
+        }
+
+        function downloadAll(outputDir) {
+            window.open(`/download/${outputDir}`, '_blank');
+        }
+
+        function downloadSingle(outputDir, filename) {
+            window.open(`/download_single/${outputDir}/${filename}`, '_blank');
+        }
+    </script>
+</body>
+</html>
