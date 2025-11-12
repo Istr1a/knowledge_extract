@@ -121,18 +121,7 @@ def read_word(word_path, output_dir):
     # 获取原始文件名（不包含扩展名），保持原有的文件名格式
     word_name = os.path.splitext(os.path.basename(word_path))[0]
     markdown_path = os.path.join(output_dir, f"{word_name}.md")
-    
-    try:
-        # 使用pandoc转换Word到Markdown
-        cmd = ['pandoc', word_path, '-o', markdown_path]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        if result.returncode == 0:
-            return True, f"成功转换: {word_name}.docx -> {word_name}.md"
-        else:
-            return False, f"转换失败: {word_name}.docx - {result.stderr}"
-    except Exception as e:
-        return False, f"转换出错: {word_name}.docx - {str(e)}"
+
 
 @app.route('/')
 def index():
